@@ -1,7 +1,8 @@
 import express from "express";
 import dotenv from "dotenv";
-// import bodyParser from "body-parser";
 import { myCoin } from "./blockchain.js";
+import { createTransaction } from "./transaction.js";
+import { createWallet, getWallet, getAllWallet } from "./wallet.js";
 
 dotenv.config();
 
@@ -19,19 +20,31 @@ app.get("/blocks", (req, res) => {
 });
 
 app.post("/transaction", (req, res) => {
-  const { fromAddress, toAddress, amount } = req.body;
-  console.log(req.body);
-  myCoin.createTransaction({
-    fromAddress,
-    toAddress,
-    amount,
-  });
+  const { privateKey, fromAddress, toAddress, amount } = req.body;
+  createTransaction(privateKey, fromAddress, toAddress, +amount);
   res.send(myCoin);
 });
 
-app.get("/mine", (req, res) => {
-  myCoin.minePendingTransactions("my-address");
+app.post("/mining", (req, res) => {
+  const { publicKey } = req.body;
+  myCoin.minePendingTransactions(publicKey);
   res.send(myCoin);
+});
+
+app.post("/create-wallet", (req, res) => {
+  const { username, password } = req.body;
+  const wallet = createWallet(username, password);
+  res.send(wallet);
+});
+
+app.get("/wallet", (req, res) => {
+  const { publicKey } = req.query;
+  const wallet = getWallet(publicKey);
+  res.send(wallet);
+});
+
+app.get("/get-all-wallet", (req, res) => {
+  res.send(getAllWallet());
 });
 
 // app.get("/peers", (req, res) => {
