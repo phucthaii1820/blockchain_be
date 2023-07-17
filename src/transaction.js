@@ -42,7 +42,6 @@ class Transaction {
 }
 
 const createTransaction = (privateKey, toAddress, fromAddress, amount) => {
-  const myKey = EC.keyFromPrivate(privateKey);
   const tx = new Transaction(toAddress, fromAddress, amount);
   tx.sign(EC.keyFromPrivate(privateKey));
   myCoin.addTransaction(tx);

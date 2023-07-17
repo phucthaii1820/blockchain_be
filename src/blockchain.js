@@ -120,6 +120,13 @@ class BlockChain {
     this.pendingTransactions = [];
   }
 
+  createTransactionFirst(fromAddress) {
+    const rewardTx = new Transaction(null, fromAddress, 900);
+    this.pendingTransactions.push(rewardTx);
+
+    this.minePendingTransactions(fromAddress);
+  }
+
   addTransaction(transaction) {
     if (!transaction.fromAddress || !transaction.toAddress) {
       throw new Error("Giao dịch phải có người gửi và người nhận!");
@@ -127,6 +134,18 @@ class BlockChain {
 
     if (!transaction.isValid()) {
       throw new Error("Không thể thêm giao dịch không hợp lệ vào blockchain!");
+    }
+
+    let currentAmount = this.getBalanceOfAddress(transaction.fromAddress);
+    for (const tx of this.pendingTransactions) {
+      if (tx.fromAddress === transaction.fromAddress) {
+        currentAmount -= tx.amount;
+      }
+    }
+    if (currentAmount < transaction.amount) {
+      throw new Error(
+        "Số dư trong ví của bạn không đủ để thực hiện giao dịch này!"
+      );
     }
 
     this.pendingTransactions.push(transaction);
