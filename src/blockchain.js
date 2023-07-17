@@ -6,7 +6,7 @@ const { ec } = pkg;
 const EC = new ec("secp256k1");
 
 // in seconds
-const BLOCK_GENERATION_INTERVAL = 100;
+const BLOCK_GENERATION_INTERVAL = 10;
 
 // in blocks
 const DIFFICULTY_ADJUSTMENT_INTERVAL = 10;
@@ -54,13 +54,13 @@ class Block {
 class BlockChain {
   constructor() {
     this.chain = [this.createGenesisBlock()];
-    this.difficulty = 0;
+    this.difficulty = 2;
     this.pendingTransactions = [];
-    this.miningReward = 100;
+    this.miningReward = 10;
   }
 
   createGenesisBlock() {
-    return new Block(0, Date.now(), [], "0", 0);
+    return new Block(0, Date.now(), [], "0", 2);
   }
 
   getLatestBlock() {
@@ -120,11 +120,22 @@ class BlockChain {
     this.pendingTransactions = [];
   }
 
-  createTransactionFirst(fromAddress) {
-    const rewardTx = new Transaction(null, fromAddress, 900);
+  rewardWhenCreateAccount(fromAddress) {
+    const rewardTx = new Transaction(null, fromAddress, 1000);
     this.pendingTransactions.push(rewardTx);
 
-    this.minePendingTransactions(fromAddress);
+    const block = new Block(
+      this.getLatestBlock().index + 1,
+      Date.now(),
+      this.pendingTransactions,
+      this.getLatestBlock().hash,
+      this.getDifficulty()
+    );
+    block.mineBlock(this.getDifficulty());
+
+    this.chain.push(block);
+
+    this.pendingTransactions = [];
   }
 
   addTransaction(transaction) {
@@ -188,29 +199,18 @@ class BlockChain {
     }
     return true;
   }
+
+  getBlockByHash(hash) {
+    for (const block of this.chain) {
+      if (block.hash === hash) {
+        return block;
+      }
+    }
+    return null;
+  }
 }
 
 // Tạo ra một blockchain mới
 const myCoin = new BlockChain();
-
-// // Tạo ra hai khóa cho hai ví khác nhau
-// const myKey = EC.keyFromPrivate(
-//   "e1ebe6dcafe8b3c7b05b8e4a8a2f9f3fcbf39f724d9f5b2bea1c9d3e7e9fdd1"
-// );
-// const myWalletAddress = myKey.getPublic("hex");
-
-// const yourKey = EC.keyFromPrivate(
-//   "9e2b9e3b6f9f9b3c9a6d8f7e5c4b2a1d9c8b7a6d5e4f3c2b1a0d9e8f7c6b5a4"
-// );
-// const yourWalletAddress = yourKey.getPublic("hex");
-
-// // Tạo 100 giao dịch từ ví của tôi đến ví của bạn
-// for (let i = 0; i < 10000; i++) {
-//   const tx1 = new Transaction(myWalletAddress, yourWalletAddress, 10);
-//   tx1.sign(myKey);
-//   myCoin.addTransaction(tx1);
-
-//   myCoin.minePendingTransactions(myWalletAddress);
-// }
 
 export { myCoin };

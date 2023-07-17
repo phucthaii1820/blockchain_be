@@ -11,6 +11,7 @@ class Transaction {
     this.toAddress = toAddress;
     this.amount = amount;
     this.signature = null;
+    this.timestamp = Date.now();
   }
 
   calculateHash() {
